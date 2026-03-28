@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TransLog – Panel de Control</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --green: #39d353;
+    --yellow: #f0a500;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --text: #e6edf3;
+    --muted: #8b949e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── LOGIN ───────────────────────────────────────────── */
+  #loginScreen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+
+  .login-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .login-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-align: center;
+  }
+
+  .login-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: -12px;
+  }
+
+  .login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .login-field label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .login-field input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .login-field input:focus {
+    border-color: var(--blue);
+  }
+
+  .login-btn {
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: opacity 0.2s;
+  }
+
+  .login-btn:hover { opacity: 0.85; }
+
+  .login-error {
+    background: rgba(248,81,73,0.1);
+    border: 1px solid var(--red);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--red);
+    text-align: center;
+    display: none;
+  }
+
+  .login-error.visible { display: block; }
+
+  /* ── DASHBOARD ───────────────────────────────────────── */
+  #dashboardScreen { display: none; flex-direction: column; height: 100vh; }
+  #dashboardScreen.visible { display: flex; }
+
+  .topbar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--green);
+    letter-spacing: 2px;
+  }
+  .badge {
+    background: var(--green);
+    color: #000;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  #clock { color: var(--text); }
+  .logout-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: 300px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+  }
+  .sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .count-badge {
+    background: var(--border);
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .driver-list { overflow-y: auto; flex: 1; }
+
+  .driver-card {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .driver-card:hover { background: #1c2128; }
+  .driver-card.active { background: #1c2128; border-left: 3px solid var(--blue); }
+  .driver-card.alert { border-left: 3px solid var(--red); animation: pulse-border 1s infinite; }
+
+  @keyframes pulse-border {
+    0%, 100% { border-left-color: var(--red); }
+    50% { border-left-color: transparent; }
+  }
+
+  .driver-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .driver-name { font-weight: 600; font-size: 14px; font-family: 'IBM Plex Mono', monospace; }
+  .driver-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+  .status-ok { background: rgba(57,211,83,0.15); color: var(--green); }
+  .status-alert { background: rgba(248,81,73,0.15); color: var(--red); }
+  .status-offline { background: rgba(139,148,158,0.15); color: var(--muted); }
+
+  .driver-meta {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .map-area {
+    flex: 1;
+    position: relative;
+    background: #0d1117;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .map-placeholder {
+    text-align: center;
+    color: var(--muted);
+  }
+  .map-placeholder .icon { font-size: 64px; margin-bottom: 16px; }
+  .map-placeholder h2 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+  .map-placeholder p { font-size: 13px; line-height: 1.6; }
+  .map-placeholder code {
+    background: var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--blue);
+  }
+
+  .info-panel {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    background: rgba(22, 27, 34, 0.95);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: none;
+    backdrop-filter: blur(8px);
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .info-panel.visible { display: flex; }
+  .info-field { display: flex; flex-direction: column; gap: 2px; }
+  .info-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .info-value { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text); }
+
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    padding: 10px 24px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .stat { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-green { background: var(--green); }
+  .dot-red { background: var(--red); }
+  .dot-gray { background: var(--muted); }
+
+  .alert-toast {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: var(--red);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    display: none;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+    max-width: 300px;
+  }
+  .alert-toast.visible { display: block; }
+  @keyframes slideIn {
+    from { transform: translateX(120%); }
+    to { transform: translateX(0); }
+  }
+  .alert-toast .alert-title { font-size: 16px; margin-bottom: 4px; }
+  .alert-toast .alert-sub { font-size: 12px; opacity: 0.9; }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ─────────────────────────────────────────────── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">TRANSLOG</div>
+    <div class="login-subtitle">Panel de Seguridad — Acceso Restringido</div>
+
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="usuario" autocomplete="off" />
+    </div>
+
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" />
+    </div>
+
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos</div>
+
+    <button class="login-btn" id="loginBtn">Ingresar</button>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ──────────────────────────────────────────── -->
+<div id="dashboardScreen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">TRANSLOG</div>
+      <div class="badge">EN VIVO</div>
+    </div>
+    <div class="topbar-right">
+      Panel de Control &nbsp;|&nbsp; <span id="clock"></span>
+      <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        Conductores
+        <span class="count-badge" id="count">0</span>
+      </div>
+      <div class="driver-list" id="driverList"></div>
+    </div>
+
+    <div class="map-area">
+      <div class="map-placeholder">
+        <div class="icon">🗺️</div>
+        <h2>Mapa de Flota</h2>
+        <p>
+          Conecta Google Maps o Leaflet.js.<br><br>
+          Endpoint de ubicaciones:<br>
+          <code>GET /locations</code><br><br>
+          Dispositivos registrados:<br>
+          <code>GET /devices</code>
+        </p>
+      </div>
+
+      <div class="info-panel" id="infoPanel">
+        <div class="info-field">
+          <div class="info-label">Token</div>
+          <div class="info-value" id="infoName">—</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Latitud</div>
+          <div class="info-value" id="infoLat">—</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Longitud</div>
+          <div class="info-value" id="infoLng">—</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Última señal</div>
+          <div class="info-value" id="infoTime">—</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Dispositivo</div>
+          <div class="info-value" id="infoDevice">—</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Estado</div>
+          <div class="info-value" id="infoStatus">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="dot dot-green"></div> <span id="countOk">0</span> operativos</div>
+    <div class="stat"><div class="dot dot-red"></div> <span id="countAlert">0</span> alertas</div>
+    <div class="stat"><div class="dot dot-gray"></div> <span id="countOff">0</span> sin señal</div>
+  </div>
+</div>
+
+<div class="alert-toast" id="alertToast">
+  <div class="alert-title">🚨 ALERTA DE EMERGENCIA</div>
+  <div class="alert-sub" id="alertText"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  CONFIG — cambia usuario y contraseña aquí
+// ════════════════════════════════════════════════════
+const USERS = {
+  'seguridad':  'translog2024',
+  'supervisor': 'supervisor123',
+  'admin':      'admin2024'
+};
+const POLL_ENDPOINT  = "https://translog-server-1.onrender.com/locations";
+const POLL_INTERVAL  = 15000;
+// ════════════════════════════════════════════════════
+
+let drivers    = {};
+let selectedId = null;
+let pollTimer  = null;
+
+// ── Login ─────────────────────────────────────────────
+document.getElementById('loginBtn').addEventListener('click', tryLogin);
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+
+function tryLogin() {
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const err  = document.getElementById('loginError');
+
+  if (USERS[user] && USERS[user] === pass) {
+    err.classList.remove('visible');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboardScreen').classList.add('visible');
+    startDashboard();
+  } else {
+    err.classList.add('visible');
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+// ── Logout ────────────────────────────────────────────
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  clearInterval(pollTimer);
+  document.getElementById('dashboardScreen').classList.remove('visible');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  drivers = {};
+});
+
+// ── Iniciar dashboard ─────────────────────────────────
+function startDashboard() {
+  pollServer();
+  pollTimer = setInterval(pollServer, POLL_INTERVAL);
+  setInterval(renderDrivers, 5000);
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+
+// ── Polling del servidor ──────────────────────────────
+async function pollServer() {
+  try {
+    const res  = await fetch(POLL_ENDPOINT);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    data.forEach(update => {
+      const wasAlert = drivers[update.driver_id]?.status === 'alert';
+      drivers[update.driver_id] = {
+        ...update,
+        lastSeen: new Date(update.timestamp)
+      };
+      if (!wasAlert && update.status === 'alert') showAlert(update.driver_id);
+    });
+
+    renderDrivers();
+    if (selectedId) selectDriver(selectedId);
+  } catch(e) {}
+}
+
+// ── Renderizar lista ──────────────────────────────────
+function renderDrivers() {
+  const list = document.getElementById('driverList');
+  list.innerHTML = '';
+  document.getElementById('count').textContent = Object.keys(drivers).length;
+
+  let ok = 0, alert_ = 0, off = 0;
+
+  Object.values(drivers).forEach(d => {
+    const ago = Math.floor((Date.now() - new Date(d.lastSeen)) / 1000);
+    const isOffline = ago > 120;
+    if (isOffline) off++;
+    else if (d.status === 'alert') alert_++;
+    else ok++;
+
+    const statusClass = isOffline ? 'status-offline' : d.status === 'alert' ? 'status-alert' : 'status-ok';
+    const statusLabel = isOffline ? 'SIN SEÑAL' : d.status === 'alert' ? '🚨 ALERTA' : 'OK';
+    const cardClass   = d.driver_id === selectedId ? ' active' : '';
+    const alertClass  = d.status === 'alert' ? ' alert' : '';
+
+    const card = document.createElement('div');
+    card.className = `driver-card${cardClass}${alertClass}`;
+    card.innerHTML = `
+      <div class="driver-top">
+        <div class="driver-name">${d.driver_id.substring(0,12)}...</div>
+        <div class="driver-status ${statusClass}">${statusLabel}</div>
+      </div>
+      <div class="driver-meta">
+        <span>${timeSince(new Date(d.lastSeen))}</span>
+        <span>${d.lat ? d.lat.toFixed(4)+', '+d.lng.toFixed(4) : '—'}</span>
+      </div>
+    `;
+    card.addEventListener('click', () => selectDriver(d.driver_id));
+    list.appendChild(card);
+  });
+
+  document.getElementById('countOk').textContent    = ok;
+  document.getElementById('countAlert').textContent = alert_;
+  document.getElementById('countOff').textContent   = off;
+}
+
+// ── Seleccionar conductor ─────────────────────────────
+function selectDriver(id) {
+  selectedId = id;
+  const d = drivers[id];
+  if (!d) return;
+
+  const panel = document.getElementById('infoPanel');
+  panel.classList.add('visible');
+  document.getElementById('infoName').textContent   = d.driver_id;
+  document.getElementById('infoLat').textContent    = d.lat ? d.lat.toFixed(6) : '—';
+  document.getElementById('infoLng').textContent    = d.lng ? d.lng.toFixed(6) : '—';
+  document.getElementById('infoTime').textContent   = timeSince(new Date(d.lastSeen));
+  document.getElementById('infoDevice').textContent = d.device?.user_agent ? d.device.user_agent.substring(0,40)+'...' : '—';
+  document.getElementById('infoStatus').textContent = d.status === 'alert' ? '🚨 Emergencia' : '✅ Operativo';
+  renderDrivers();
+}
+
+// ── Alerta de emergencia ──────────────────────────────
+function showAlert(driverId) {
+  const toast = document.getElementById('alertToast');
+  document.getElementById('alertText').textContent = `Token: ${driverId.substring(0,12)}...`;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 10000);
+
+  try {
+    const ctx = new AudioContext();
+    [0, 0.3, 0.6].forEach(t => {
+      const osc = ctx.createOscillator();
+      osc.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.start(ctx.currentTime + t);
+      osc.stop(ctx.currentTime + t + 0.2);
+    });
+  } catch(e) {}
+}
+
+// ── Helpers ───────────────────────────────────────────
+function timeSince(date) {
+  const s = Math.floor((Date.now() - date) / 1000);
+  if (s < 60) return `hace ${s}s`;
+  if (s < 3600) return `hace ${Math.floor(s/60)}min`;
+  return `hace ${Math.floor(s/3600)}h`;
+}
+
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('es-CL');
+}
+</script>
+</body>
+</html>
