@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
 import os, json
+from flask import send_file
 
 app = Flask(__name__)
 CORS(app)
@@ -125,6 +126,9 @@ def index():
         'activos':      len(locations)
     }), 200
 
-
+# ── Servir dashboard ──────────────────────────────────────────────
+@app.route('/dashboard', methods=['GET'])
+def serve_dashboard():
+    return send_file('dashboard_flota.html')
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)
