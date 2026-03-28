@@ -129,6 +129,6 @@ def index():
 # ── Servir dashboard ──────────────────────────────────────────────
 @app.route('/dashboard', methods=['GET'])
 def serve_dashboard():
-    return send_file('dashboard_flota.html')
+    return send_file(os.path.join(os.path.dirname(__file__), 'dashboard_flota.html'))
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)
